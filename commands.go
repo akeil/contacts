@@ -80,7 +80,13 @@ func edit(query string) error {
     if err != nil {
         return err
     }
-    return editCard(&card)
+
+    err = editCard(&card)
+    if err != nil {
+        return err
+    }
+    // TODO check whether the card was changed
+    return model.Save("/home/akeil/contacts", card)
 }
 
 
@@ -184,11 +190,6 @@ func displayName(card vdir.Card) string {
 
 // Editor ---------------------------------------------------------------------
 
-var matchers = map[string] *regexp.Regexp {
-    "firstName": regexp.MustCompile(`^First Name: (.*?)$`),
-    "lastName": regexp.MustCompile(`^Last Name: (.*?)$`),
-}
-
 func editCard(card *vdir.Card) error {
     tempfile, err := ioutil.TempFile("", "edit-card-")
     if err != nil {
@@ -207,13 +208,11 @@ func editCard(card *vdir.Card) error {
         return err
     }
 
-    matches, err := parseTemplate(tempfile.Name())
+    err = parseTemplate(tempfile.Name(), card)
     if err != nil {
         return err
     }
 
-    card.Name.GivenName = []string{matches["firstName"]}
-    //contact.LastName = matches["lastName"]
     return err
 }
 
@@ -226,29 +225,105 @@ func fillTemplate(file *os.File, card *vdir.Card) error {
     return tpl.Execute(file, card)
 }
 
-func parseTemplate(filename string) (map[string]string, error) {
-    matches := map[string]string{}
+func parseTemplate(filename string, card *vdir.Card) error {
     file, err := os.Open(filename)
     if err != nil {
-        return matches, err
+        return err
     }
 
     defer file.Close()
     reader := bufio.NewReader(file)
     scanner := bufio.NewScanner(reader)
+
     var line string
+    f := parseNames
     for scanner.Scan() {
         line = scanner.Text()
-        for key, matcher := range matchers {
-            if groups := matcher.FindStringSubmatch(line); groups != nil {
-                matches[key] = groups[1]
+        log.Println(line)
+        if strings.HasPrefix(line, "# Mail Adresses") {
+            card.Email = []vdir.TypedValue{}
+            f = parseMailAdress
+        } else if strings.HasPrefix(line, "# Phone Numbers") {
+            card.Telephones = []vdir.TypedValue{}
+            f = parsePhoneNumber
+        } else if strings.HasPrefix(line, "# Postal Addresses"){
+            card.Addresses = []vdir.Address{}
+            f = parsePostalAdress
+        } else if strings.HasPrefix(line, "#") {
+            continue
+        } else if line == "" {
+            continue
+        }
+        f(line, card)
+    }
+
+    return err
+}
+
+var matchers = map[string] *regexp.Regexp {
+    "firstName": regexp.MustCompile(`^First Name\s*: (.*?)$`),
+    "lastName": regexp.MustCompile(`^Last Name\s*: (.*?)$`),
+    "nickName": regexp.MustCompile(`^Nick\s*: (.*?)$`),
+}
+
+func parseNames(line string, card *vdir.Card) {
+    log.Println("parseNames")
+    for key, matcher := range matchers {
+        if groups := matcher.FindStringSubmatch(line); groups != nil {
+            value := strings.TrimSpace(groups[1])
+            switch key {
+            case "firstName":
+                card.Name.GivenName = []string{value}
+            case "lastName":
+                card.Name.FamilyName = []string{value}
+            case "nickName":
+                card.NickName = []string{value}
             }
         }
     }
-
-    return matches, err
 }
 
+var typedValueRegex = regexp.MustCompile(`^([a-z]+)\s*:\s*(.*?)$`)
+
+func parseMailAdress(line string, card *vdir.Card) {
+    if groups := typedValueRegex.FindStringSubmatch(line); groups != nil {
+        kind := groups[1]
+        value := groups[2]
+        tvalue := vdir.TypedValue{[]string{kind}, value}
+        card.Email = append(card.Email, tvalue)
+    }
+}
+
+func parsePhoneNumber(line string, card *vdir.Card) {
+    if groups := typedValueRegex.FindStringSubmatch(line); groups != nil {
+        kind := groups[1]
+        value := groups[2]
+        tvalue := vdir.TypedValue{[]string{kind}, value}
+        card.Telephones = append(card.Telephones, tvalue)
+    }
+}
+
+// Format "TYPE: ?; ?; STREET; CITY; REGION; POSTAL_CODE; COUNTRY"
+var addrRegex = regexp.MustCompile(
+    `^([a-z]+): (.*?); (.*?); (.*?); (.*?); (.*?); (.*?); (.*?)$`)
+//                unk    unk    str    city   reg    code   country
+func parsePostalAdress(line string, card *vdir.Card) {
+    log.Println("parsePostalAdress")
+    if groups := addrRegex.FindStringSubmatch(line); groups != nil {
+        addr := vdir.Address{
+            []string{strings.TrimSpace(groups[1])},
+            "",  // Label
+            "",  // PostOfficeBox
+            "",  // ExtendedAddress
+            strings.TrimSpace(groups[4]),  // Street
+            strings.TrimSpace(groups[5]),  // Locality (City)
+            strings.TrimSpace(groups[6]),  // Region
+            strings.TrimSpace(groups[7]),  // PostalCode
+            strings.TrimSpace(groups[8]),  // CountryName
+        }
+        card.Addresses = append(card.Addresses, addr)
+    }
+}
 
 // Main -----------------------------------------------------------------------
 
