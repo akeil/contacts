@@ -25,21 +25,22 @@ func NewAddressbook(dirname string) *Addressbook {
     return book
 }
 
-func (ab *Addressbook) Find(query string) []vdir.Card {
+func (ab *Addressbook) Find(query string) ([]vdir.Card, error) {
     var err error
+    var found []vdir.Card
     if ab.cards == nil {
         err = ab.load()
     }
     if err != nil {
-        log.Println(err)
+        return found, err
     }
-    var found []vdir.Card
+
     for _, card := range ab.cards {
         if matches(card, query) {
             found = append(found, card)
         }
     }
-    return found
+    return found, err
 }
 
 func (ab *Addressbook) load() error{

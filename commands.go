@@ -40,11 +40,14 @@ func add(firstName string, lastName string, nickName string, skipEdit bool) erro
 // Use an empty query to list all contacts.
 func list(query string) error {
     addressbook := model.NewAddressbook("/home/akeil/contacts")
-    results := addressbook.Find(query)
-    if len(results) == 0 {
+    results, err := addressbook.Find(query)
+    if err != nil {
+        return err
+    } else if len(results) == 0 {
         fmt.Println("No match.")
         return nil
     }
+
     table := uitable.New()
     table.Separator = "  "
     table.AddRow("NAME", "MAIL", "PHONE")
@@ -119,8 +122,11 @@ func join(list []string) string {
 
 func selectOne(book *model.Addressbook, query string) (vdir.Card, error) {
     var selected vdir.Card
-    var err error
-    found := book.Find(query)
+    found, err := book.Find(query)
+    if err != nil {
+        return selected, err
+    }
+
     if len(found) > 1 {
         selected, err = choose(found)
     } else if len(found) == 1 {
