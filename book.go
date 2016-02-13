@@ -67,16 +67,7 @@ func (ab *Addressbook) load() error{
     for _, file := range files {
         if file.Mode().IsRegular() {
             if filepath.Ext(file.Name()) == ".vcf" {
-                //var card *vdir.Card
-                card := new(vdir.Card)
-                fullpath := ab.Dirname + "/" + file.Name()
-                log.Printf("Load from %s", fullpath)
-                data, err := ioutil.ReadFile(fullpath)
-                if err != nil {
-                    return err
-                }
-                // TODO panic if file does not end with empty an line
-                err = vdir.Unmarshal(data, card)
+                card, err := loadCard(ab.Dirname + "/" + file.Name())
                 if err != nil {
                     return err
                 }
@@ -85,6 +76,23 @@ func (ab *Addressbook) load() error{
         }
     }
     return nil
+}
+
+func loadCard(fullpath string) (*vdir.Card, error) {
+    card := new(vdir.Card)
+    log.Printf("Load from %s", fullpath)
+    data, err := ioutil.ReadFile(fullpath)
+    if err != nil {
+        return card, err
+    }
+    // Unmarshal will panic if file does not end with empty an line
+    // additional empty lines have no effect
+    data = append(data, '\n')
+    err = vdir.Unmarshal(data, card)
+    if err != nil {
+        return card, err
+    }
+    return card, nil
 }
 
 // Sort Helper
