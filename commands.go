@@ -2,8 +2,11 @@ package main
 
 import (
     "bufio"
+    "crypto/md5"
+    "encoding/hex"
     "errors"
     "fmt"
+    "io"
     "io/ioutil"
     "log"
     "os"
@@ -22,7 +25,7 @@ import (
 )
 
 // Add a new contact
-func add(firstName string, lastName string, nickName string, skipEdit bool) error{
+func add(firstName string, lastName string, nickName string, skipEdit bool) error {
     addressbook := model.NewAddressbook("/home/akeil/contacts")
     card := new(vdir.Card)
     card.Name.GivenName = []string{firstName}
@@ -33,8 +36,13 @@ func add(firstName string, lastName string, nickName string, skipEdit bool) erro
         //TODO err
         editCard(card)
     }
-    model.Save(addressbook.Dirname, *card)
-    return nil
+    err := model.Save(addressbook.Dirname, *card)
+    if err != nil {
+        return err
+    }
+
+    fmt.Println("Contact added.")
+    return showDetails(*card)
 }
 
 // list all contacts matching the given `query`.
@@ -207,6 +215,7 @@ func editCard(card *vdir.Card) error {
     if err != nil {
         return err
     }
+    hashBefore := calcMd5(tempfile.Name())
 
     // run editor
     cmd := exec.Command("/usr/bin/gedit", tempfile.Name())
@@ -215,7 +224,15 @@ func editCard(card *vdir.Card) error {
         return err
     }
 
-    // TODO check for change
+    if hashBefore != "" {
+        hashAfter := calcMd5(tempfile.Name())
+        log.Println("Hash Before: " + hashBefore)
+        log.Println("Hash After:  " + hashAfter)
+        if hashBefore == hashAfter {
+            return errors.New("Contact was not changed")
+        }
+    }
+
     file, err := os.Open(tempfile.Name())
     if err != nil {
         return err
@@ -230,6 +247,19 @@ func editCard(card *vdir.Card) error {
     }
 
     return err
+}
+
+func calcMd5(filename string) string {
+    hash := md5.New()
+    file, err := os.Open(filename)
+    if err != nil {
+        return ""
+    }
+    defer file.Close()
+    if _, err := io.Copy(hash, file); err != nil {
+        return ""
+    }
+    return hex.EncodeToString(hash.Sum(nil))
 }
 
 func fillTemplate(file *os.File, card *vdir.Card) error {
@@ -347,7 +377,7 @@ func main() {
     showCmd := kingpin.Command("show", "Show contact details.")
     showQuery := showCmd.Arg("query", "Search term.").String()
 
-    log.SetOutput(ioutil.Discard)
+    //log.SetOutput(ioutil.Discard)
     var err error
     log.Println("start")
     switch kingpin.Parse() {
