@@ -28,8 +28,11 @@ func EditCard(cfg Configuration, card *vdir.Card) error {
     }
     hashBefore := calcMd5(tempfile.Name())
 
-    // run editor
     cmd := exec.Command(cfg.Editor, tempfile.Name())
+    // see http://stackoverflow.com/questions/12088138/trying-to-launch-an-external-editor-from-within-a-go-program
+    cmd.Stdin = os.Stdin
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
     err = cmd.Run()
     if err != nil {
         return err
