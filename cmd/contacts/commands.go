@@ -21,12 +21,12 @@ import (
     "github.com/gosuri/uitable"
     "github.com/xconstruct/vdir"
 
-    "akeil.net/contacts/model"
+    "akeil.net/contacts"
 )
 
 // Add a new contact
 func add(firstName string, lastName string, nickName string, skipEdit bool) error {
-    addressbook := model.NewAddressbook("/home/akeil/contacts")
+    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
     card := new(vdir.Card)
     card.Name.GivenName = []string{firstName}
     card.Name.FamilyName = []string{nickName}
@@ -36,7 +36,7 @@ func add(firstName string, lastName string, nickName string, skipEdit bool) erro
         //TODO err
         editCard(card)
     }
-    err := model.Save(addressbook.Dirname, *card)
+    err := contacts.Save(addressbook.Dirname, *card)
     if err != nil {
         return err
     }
@@ -48,7 +48,7 @@ func add(firstName string, lastName string, nickName string, skipEdit bool) erro
 // list all contacts matching the given `query`.
 // Use an empty query to list all contacts.
 func list(query string) error {
-    addressbook := model.NewAddressbook("/home/akeil/contacts")
+    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
     results, err := addressbook.Find(query)
     if err != nil {
         return err
@@ -60,11 +60,11 @@ func list(query string) error {
     table := uitable.New()
     table.Separator = "  "
     table.AddRow("NAME", "MAIL", "PHONE")
-    sort.Sort(model.ByName(results))
+    sort.Sort(contacts.ByName(results))
     for _, card := range results {
-        table.AddRow(model.FormatName(card),
-                     model.PrimaryMail(card),
-                     model.PrimaryPhone(card))
+        table.AddRow(contacts.FormatName(card),
+                     contacts.PrimaryMail(card),
+                     contacts.PrimaryPhone(card))
     }
     fmt.Println(table)
     return nil
@@ -73,7 +73,7 @@ func list(query string) error {
 // show details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
 func show(query string) error {
-    addressbook := model.NewAddressbook("/home/akeil/contacts")
+    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
     card, err := selectOne(addressbook, query)
     if err != nil {
         return err
@@ -85,7 +85,7 @@ func show(query string) error {
 // edit details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
 func edit(query string) error {
-    addressbook := model.NewAddressbook("/home/akeil/contacts")
+    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
     card, err := selectOne(addressbook, query)
     if err != nil {
         return err
@@ -96,7 +96,7 @@ func edit(query string) error {
         return err
     }
     // TODO check whether the card was changed
-    err = model.Save("/home/akeil/contacts", card)
+    err = contacts.Save("/home/akeil/contacts", card)
     if err != nil {
         return err
     }
@@ -141,7 +141,7 @@ func join(list []string) string {
     return result
 }
 
-func selectOne(book *model.Addressbook, query string) (vdir.Card, error) {
+func selectOne(book *contacts.Addressbook, query string) (vdir.Card, error) {
     var selected vdir.Card
     found, err := book.Find(query)
     if err != nil {
