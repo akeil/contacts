@@ -88,14 +88,19 @@ func edit(query string) error {
         return err
     }
     // TODO check whether the card was changed
-    return model.Save("/home/akeil/contacts", card)
+    err = model.Save("/home/akeil/contacts", card)
+    if err != nil {
+        return err
+    }
+
+    fmt.Println("Contact saved.")
+    return showDetails(card)
 }
 
 
 // Helpers --------------------------------------------------------------------
 
 func showDetails(card vdir.Card) error {
-    fmt.Println(card.Email)
     tpl, err := loadTemplate("/home/akeil/code/go/src/akeil.net/contacts",
                              "details.tpl")
     if err != nil {

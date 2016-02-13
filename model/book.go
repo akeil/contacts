@@ -102,30 +102,51 @@ func (a ByName) Less(i, j int) bool {
     return FormatName(a[i]) < FormatName(a[j])
 }
 
+// search helper
 func matches(card vdir.Card, query string) bool {
-    props := []string {
-        strings.ToLower(card.FormattedName),
+    if contains(card.FormattedName, query){
+        return true
     }
-    for _, s := range card.NickName {
-        props = append(props, strings.ToLower(s))
+    if arrayContains(card.NickName, query) {
+        return true
     }
-    for _, s := range card.Name.FamilyName {
-        props = append(props, strings.ToLower(s))
+    if arrayContains(card.Name.FamilyName, query) {
+        return true
     }
-    for _, s := range card.Name.GivenName {
-        props = append(props, strings.ToLower(s))
+    if arrayContains(card.Name.GivenName, query) {
+        return true
+    }
+    if typedValuesContain(card.Email, query) {
+        return true
+    }
+    if typedValuesContain(card.Telephones, query) {
+        return true
     }
 
-    match := false
-    for _, prop := range props {
-        if prop != "" {
-            if strings.HasSuffix(prop, query) || strings.HasPrefix(prop, query) {
-                match = true
-                break
-            }
+    return false
+}
+
+func typedValuesContain(tvalues []vdir.TypedValue, query string) bool {
+    for _, tv := range tvalues {
+        if contains(tv.Value, query) {
+            return true
         }
     }
-    return match
+    return false
+}
+
+func arrayContains(texts []string, query string) bool {
+    for _, s := range texts {
+        if contains(s, query) {
+            return true
+        }
+    }
+    return false
+}
+
+func contains(text, what string) bool {
+    text, what = strings.ToLower(text), strings.ToLower(what)
+    return strings.HasSuffix(text, what) || strings.HasPrefix(text, what)
 }
 
 // Save a vCard to the given directory

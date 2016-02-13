@@ -1,4 +1,4 @@
----- Contact ----{{if .NickName }}
+--------------------[ Contact ]--------------------{{if .NickName }}
 Nick      : {{ .NickName | join }}{{end}}
 First Name: {{ .Name.GivenName | join }}
 Last Name : {{ .Name.FamilyName | join }}
@@ -15,3 +15,4 @@ Mail Adresses:
   {{ .PostalCode }} {{ .Locality }}
   {{ .CountryName }}{{end}}
 {{ end }}
+---------------------------------------------------
