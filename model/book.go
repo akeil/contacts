@@ -2,7 +2,6 @@ package model
 
 import (
     "errors"
-    "fmt"
     "io/ioutil"
     "log"
     "os"
@@ -88,6 +87,21 @@ func (ab *Addressbook) load() error{
     return nil
 }
 
+// Sort Helper
+type ByName []vdir.Card
+
+func (a ByName) Len() int {
+    return len(a)
+}
+
+func (a ByName) Swap(front, back int) {
+    a[front], a[back] = a[back], a[front]
+}
+
+func (a ByName) Less(i, j int) bool {
+    return FormatName(a[i]) < FormatName(a[j])
+}
+
 func matches(card vdir.Card, query string) bool {
     props := []string {
         strings.ToLower(card.FormattedName),
@@ -114,6 +128,10 @@ func matches(card vdir.Card, query string) bool {
     return match
 }
 
+// Save a vCard to the given directory
+// the filename is derived from the cards UID.
+// if no UID is set, one is assigned
+// also sets the Rev field
 func Save(dirname string, card vdir.Card) error {
     if card.Uid == "" {
         card.Uid = uuid.New()
@@ -137,6 +155,7 @@ func Save(dirname string, card vdir.Card) error {
     return err
 }
 
+// Create the Full Name from first name and last name
 func FormatName(card vdir.Card) string {
     var name string
     if card.FormattedName != "" {

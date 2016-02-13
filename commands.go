@@ -9,6 +9,7 @@ import (
     "os"
     "os/exec"
     "regexp"
+    "sort"
     "strconv"
     "strings"
     "text/template"
@@ -51,6 +52,7 @@ func list(query string) error {
     table := uitable.New()
     table.Separator = "  "
     table.AddRow("NAME", "MAIL", "PHONE")
+    sort.Sort(model.ByName(results))
     for _, card := range results {
         table.AddRow(model.FormatName(card),
                      model.PrimaryMail(card),
@@ -340,7 +342,7 @@ func main() {
     showCmd := kingpin.Command("show", "Show contact details.")
     showQuery := showCmd.Arg("query", "Search term.").String()
 
-    //log.SetOutput(ioutil.Discard)
+    log.SetOutput(ioutil.Discard)
     var err error
     log.Println("start")
     switch kingpin.Parse() {
