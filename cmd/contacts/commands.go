@@ -18,6 +18,9 @@ import (
     "akeil.net/contacts"
 )
 
+
+// Commands -------------------------------------------------------------------
+
 // Add a new contact
 func add(firstName string, lastName string, nickName string, skipEdit bool) error {
     var err error
@@ -28,7 +31,6 @@ func add(firstName string, lastName string, nickName string, skipEdit bool) erro
     card.NickName = []string{nickName}
 
     if !skipEdit {
-        //TODO err
         err = contacts.EditCard(card)
         if err != nil {
             // TODO: edit w/o change is an error

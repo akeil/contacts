@@ -22,7 +22,7 @@ func EditCard(card *vdir.Card) error {
     }
 
     defer os.Remove(tempfile.Name())
-    err = fillTemplate(tempfile, card)
+    err = FillTemplate(tempfile, "edit.tpl", card)
     if err != nil {
         return err
     }
@@ -71,15 +71,6 @@ func calcMd5(filename string) string {
         return ""
     }
     return hex.EncodeToString(hash.Sum(nil))
-}
-
-func fillTemplate(file *os.File, card *vdir.Card) error {
-    tpl, err := LoadTemplate("/home/akeil/code/go/src/akeil.net/contacts",
-                             "edit.tpl")
-    if err != nil {
-        return err
-    }
-    return tpl.Execute(file, card)
 }
 
 func parseTemplate(scanner *bufio.Scanner, card *vdir.Card) error {
@@ -171,10 +162,5 @@ func parsePostalAdress(line string, card *vdir.Card) {
 }
 
 func ShowDetails(card vdir.Card) error {
-    tpl, err := LoadTemplate("/home/akeil/code/go/src/akeil.net/contacts",
-                             "details.tpl")
-    if err != nil {
-        return err
-    }
-    return tpl.Execute(os.Stdout, card)
+    return FillTemplate(os.Stdout, "details.tpl", &card)
 }
