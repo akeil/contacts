@@ -158,7 +158,6 @@ func choose(choices []vdir.Card) (vdir.Card, error) {
         return chosen, err
     }
 
-
     index, err := strconv.ParseInt(strings.TrimSpace(input), 10, 0)
     if err != nil {
         return chosen, err
@@ -202,13 +201,23 @@ func editCard(card *vdir.Card) error {
         return err
     }
 
+    // run editor
     cmd := exec.Command("/usr/bin/gedit", tempfile.Name())
     err = cmd.Run()
     if err != nil {
         return err
     }
 
-    err = parseTemplate(tempfile.Name(), card)
+    // TODO check for change
+    file, err := os.Open(tempfile.Name())
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+
+    reader := bufio.NewReader(file)
+    scanner := bufio.NewScanner(reader)
+    err = parseTemplate(scanner, card)
     if err != nil {
         return err
     }
@@ -225,21 +234,11 @@ func fillTemplate(file *os.File, card *vdir.Card) error {
     return tpl.Execute(file, card)
 }
 
-func parseTemplate(filename string, card *vdir.Card) error {
-    file, err := os.Open(filename)
-    if err != nil {
-        return err
-    }
-
-    defer file.Close()
-    reader := bufio.NewReader(file)
-    scanner := bufio.NewScanner(reader)
-
+func parseTemplate(scanner *bufio.Scanner, card *vdir.Card) error {
     var line string
     f := parseNames
     for scanner.Scan() {
         line = scanner.Text()
-        log.Println(line)
         if strings.HasPrefix(line, "# Mail Adresses") {
             card.Email = []vdir.TypedValue{}
             f = parseMailAdress
@@ -257,7 +256,7 @@ func parseTemplate(filename string, card *vdir.Card) error {
         f(line, card)
     }
 
-    return err
+    return nil
 }
 
 var matchers = map[string] *regexp.Regexp {
@@ -267,7 +266,6 @@ var matchers = map[string] *regexp.Regexp {
 }
 
 func parseNames(line string, card *vdir.Card) {
-    log.Println("parseNames")
     for key, matcher := range matchers {
         if groups := matcher.FindStringSubmatch(line); groups != nil {
             value := strings.TrimSpace(groups[1])
@@ -308,7 +306,6 @@ var addrRegex = regexp.MustCompile(
     `^([a-z]+): (.*?); (.*?); (.*?); (.*?); (.*?); (.*?); (.*?)$`)
 //                unk    unk    str    city   reg    code   country
 func parsePostalAdress(line string, card *vdir.Card) {
-    log.Println("parsePostalAdress")
     if groups := addrRegex.FindStringSubmatch(line); groups != nil {
         addr := vdir.Address{
             []string{strings.TrimSpace(groups[1])},
@@ -324,6 +321,7 @@ func parsePostalAdress(line string, card *vdir.Card) {
         card.Addresses = append(card.Addresses, addr)
     }
 }
+
 
 // Main -----------------------------------------------------------------------
 
