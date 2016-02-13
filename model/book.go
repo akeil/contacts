@@ -115,15 +115,25 @@ func matches(card vdir.Card, query string) bool {
 }
 
 func Save(dirname string, card vdir.Card) error {
-    uid := uuid.New()
-    card.Version = "3.0"
-    card.Uid = uid
+    if card.Uid == "" {
+        card.Uid = uuid.New()
+    }
     // rev, e.g. 1995-10-31T22:27:10Z
     card.Rev = time.Now().UTC().Format(time.RFC3339)
     card.FormattedName = FormatName(card)
 
     bytes, err := vdir.Marshal(card)
-    fmt.Printf("Card: %s\n", bytes)
+    if err != nil {
+        return err
+    }
+
+    fullpath := dirname + "/" + card.Uid + ".vcf"
+    file, err := os.Create(fullpath)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+    _, err = file.Write(bytes)
     return err
 }
 
