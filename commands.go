@@ -363,6 +363,8 @@ func parsePostalAdress(line string, card *vdir.Card) {
 // Main -----------------------------------------------------------------------
 
 func main() {
+    verbose := kingpin.Flag("verbose", "Verbose mode.").Short('v').Bool()
+
     addCmd := kingpin.Command("add", "Add a contact.")
     addFirstName := addCmd.Flag("first", "First Name").Short('f').String()
     addLastName := addCmd.Flag("last", "Last Name").Short('l').String()
@@ -377,10 +379,13 @@ func main() {
     showCmd := kingpin.Command("show", "Show contact details.")
     showQuery := showCmd.Arg("query", "Search term.").String()
 
-    //log.SetOutput(ioutil.Discard)
+    cmd := kingpin.Parse()
+    if !*verbose {
+        log.SetOutput(ioutil.Discard)
+    }
+
     var err error
-    log.Println("start")
-    switch kingpin.Parse() {
+    switch cmd {
     case "add":
         err = add(*addFirstName, *addLastName, *addNick, *addSkipEdit)
     case "list":
