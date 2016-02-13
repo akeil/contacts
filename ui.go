@@ -1,5 +1,7 @@
 package contacts
 
+// go:generate go-bindata -pkg $GOPACKAGE -o assets.go tpl/
+
 import (
     "io"
     "log"
@@ -9,26 +11,27 @@ import (
 )
 
 func FillTemplate(writer io.Writer, tplName string, card *vdir.Card) error {
-    tpl, err := loadTemplate("/home/akeil/code/go/src/akeil.net/contacts",
-                             tplName)
+    tpl, err := loadTemplate(tplName)
     if err != nil {
         return err
     }
     return tpl.Execute(writer, card)
 }
 
-func loadTemplate(basedir string, name string) (*template.Template, error) {
-    fullpath := basedir + "/" + name
-    log.Println("Load template " + fullpath)
+func loadTemplate(name string) (*template.Template, error) {
+    log.Println("Load template " + name)
     tpl := template.New(name)
-
     funcs := template.FuncMap{
         "join": join,
     }
     tpl.Funcs(funcs)
 
-    tpl, err := tpl.ParseFiles(fullpath)
-    return tpl, err
+    // for `Asset` see https://github.com/jteeuwen/go-bindata
+    tplStr, err := Asset("tpl/" + name)
+    if err != nil {
+        return tpl, err
+    }
+    return tpl.Parse(string(tplStr))
 }
 
 func join(list []string) string {

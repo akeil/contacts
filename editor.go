@@ -162,5 +162,5 @@ func parsePostalAdress(line string, card *vdir.Card) {
 }
 
 func ShowDetails(card vdir.Card) error {
-    return FillTemplate(os.Stdout, "details.tpl", &card)
+    return FillTemplate(os.Stdout, "show.tpl", &card)
 }
