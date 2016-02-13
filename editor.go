@@ -15,7 +15,7 @@ import (
     "github.com/xconstruct/vdir"
 )
 
-func EditCard(card *vdir.Card) error {
+func EditCard(cfg Configuration, card *vdir.Card) error {
     tempfile, err := ioutil.TempFile("", "edit-card-")
     if err != nil {
         return err
@@ -29,7 +29,7 @@ func EditCard(card *vdir.Card) error {
     hashBefore := calcMd5(tempfile.Name())
 
     // run editor
-    cmd := exec.Command("/usr/bin/gedit", tempfile.Name())
+    cmd := exec.Command(cfg.Editor, tempfile.Name())
     err = cmd.Run()
     if err != nil {
         return err

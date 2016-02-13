@@ -22,16 +22,16 @@ import (
 // Commands -------------------------------------------------------------------
 
 // Add a new contact
-func add(firstName string, lastName string, nickName string, skipEdit bool) error {
+func add(cfg contacts.Configuration, firstName string, lastName string, nickName string, skipEdit bool) error {
     var err error
-    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
+    addressbook := contacts.NewAddressbook(cfg.Addressbook)
     card := new(vdir.Card)
     card.Name.GivenName = []string{firstName}
     card.Name.FamilyName = []string{nickName}
     card.NickName = []string{nickName}
 
     if !skipEdit {
-        err = contacts.EditCard(card)
+        err = contacts.EditCard(cfg, card)
         if err != nil {
             // TODO: edit w/o change is an error
             return err
@@ -48,8 +48,8 @@ func add(firstName string, lastName string, nickName string, skipEdit bool) erro
 
 // list all contacts matching the given `query`.
 // Use an empty query to list all contacts.
-func list(query string) error {
-    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
+func list(cfg contacts.Configuration, query string) error {
+    addressbook := contacts.NewAddressbook(cfg.Addressbook)
     results, err := addressbook.Find(query)
     if err != nil {
         return err
@@ -73,8 +73,8 @@ func list(query string) error {
 
 // show details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
-func show(query string) error {
-    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
+func show(cfg contacts.Configuration, query string) error {
+    addressbook := contacts.NewAddressbook(cfg.Addressbook)
     card, err := selectOne(addressbook, query)
     if err != nil {
         return err
@@ -85,19 +85,19 @@ func show(query string) error {
 
 // edit details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
-func edit(query string) error {
-    addressbook := contacts.NewAddressbook("/home/akeil/contacts")
+func edit(cfg contacts.Configuration, query string) error {
+    addressbook := contacts.NewAddressbook(cfg.Addressbook)
     card, err := selectOne(addressbook, query)
     if err != nil {
         return err
     }
 
-    err = contacts.EditCard(&card)
+    err = contacts.EditCard(cfg, &card)
     if err != nil {
         return err
     }
     // TODO check whether the card was changed
-    err = contacts.Save("/home/akeil/contacts", card)
+    err = contacts.Save(addressbook.Dirname, card)
     if err != nil {
         return err
     }
@@ -193,17 +193,19 @@ func main() {
     if !*verbose {
         log.SetOutput(ioutil.Discard)
     }
+    cfg := contacts.ReadConfiguration()
+    log.Println(cfg)
 
     var err error
     switch cmd {
     case "add":
-        err = add(*addFirstName, *addLastName, *addNick, *addSkipEdit)
+        err = add(cfg, *addFirstName, *addLastName, *addNick, *addSkipEdit)
     case "list":
-        err = list(*listQuery)
+        err = list(cfg, *listQuery)
     case "show":
-        err = show(*showQuery)
+        err = show(cfg, *showQuery)
     case "edit":
-        err = edit(*editQuery)
+        err = edit(cfg, *editQuery)
     }
 
     if err != nil {
