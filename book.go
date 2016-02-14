@@ -42,6 +42,34 @@ func (b *Addressbook) Find(query Query) ([]vdir.Card, error) {
     return found, err
 }
 
+// Save the given card
+// the filename is derived from the cards UID.
+// if no UID is set, one is assigned
+// also set the Rev field
+func (b Addressbook) Save(card vdir.Card) error {
+    if card.Uid == "" {
+        card.Uid = uuid.New()
+    }
+    // rev, e.g. 1995-10-31T22:27:10Z
+    card.Rev = time.Now().UTC().Format(time.RFC3339)
+    card.FormattedName = FormatName(card)
+
+    bytes, err := vdir.Marshal(card)
+    if err != nil {
+        return err
+    }
+
+    fullpath := b.cardPath(card)
+    file, err := os.Create(fullpath)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+    _, err = file.Write(bytes)
+    return err
+}
+
+// delete the given card from the VDir
 func (b Addressbook) Delete(card vdir.Card) error {
     path := b.cardPath(card)
     // TODO: move to trash
@@ -194,33 +222,6 @@ func arrayContains(texts []string, query string) bool {
         }
     }
     return false
-}
-
-// Save a vCard to the given directory
-// the filename is derived from the cards UID.
-// if no UID is set, one is assigned
-// also sets the Rev field
-func Save(dirname string, card vdir.Card) error {
-    if card.Uid == "" {
-        card.Uid = uuid.New()
-    }
-    // rev, e.g. 1995-10-31T22:27:10Z
-    card.Rev = time.Now().UTC().Format(time.RFC3339)
-    card.FormattedName = FormatName(card)
-
-    bytes, err := vdir.Marshal(card)
-    if err != nil {
-        return err
-    }
-
-    fullpath := filepath.Join(dirname, card.Uid + ".vcf")
-    file, err := os.Create(fullpath)
-    if err != nil {
-        return err
-    }
-    defer file.Close()
-    _, err = file.Write(bytes)
-    return err
 }
 
 // Create the Full Name from first name and last name

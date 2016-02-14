@@ -37,7 +37,7 @@ func add(cfg contacts.Configuration, firstName string, lastName string, nickName
             return err
         }
     }
-    err = contacts.Save(addressbook.Dirname, *card)
+    err = addressbook.Save(*card)
     if err != nil {
         return err
     }
@@ -96,7 +96,7 @@ func edit(cfg contacts.Configuration, query contacts.Query) error {
     if err != nil {
         return err
     }
-    err = contacts.Save(addressbook.Dirname, card)
+    err = addressbook.Save(card)
     if err != nil {
         return err
     }
