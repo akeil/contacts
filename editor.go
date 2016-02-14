@@ -117,14 +117,14 @@ func parseTemplate(scanner *bufio.Scanner, card *vdir.Card) error {
 }
 
 var matchers = map[string] *regexp.Regexp {
-    "prefix": regexp.MustCompile(`^Prefix\s*: (.*?)$`),
-    "firstName": regexp.MustCompile(`^First Name\s*: (.*?)$`),
-    "lastName": regexp.MustCompile(`^Last Name\s*: (.*?)$`),
-    "nickName": regexp.MustCompile(`^Nick\s*: (.*?)$`),
-    "title": regexp.MustCompile(`^Title\s*: (.*?)$`),
-    "role": regexp.MustCompile(`^Role\s*: (.*?)$`),
-    "org": regexp.MustCompile(`^Organization\s*: (.*?)$`),
-    "categories": regexp.MustCompile(`^Categories\s*: (.*?)$`),
+    "prefix": regexp.MustCompile(`^Prefix\s*:(.*?)$`),
+    "firstName": regexp.MustCompile(`^First Name\s*:(.*?)$`),
+    "lastName": regexp.MustCompile(`^Last Name\s*:(.*?)$`),
+    "nickName": regexp.MustCompile(`^Nick\s*:(.*?)$`),
+    "title": regexp.MustCompile(`^Title\s*:(.*?)$`),
+    "role": regexp.MustCompile(`^Role\s*:(.*?)$`),
+    "org": regexp.MustCompile(`^Organization\s*:(.*?)$`),
+    "categories": regexp.MustCompile(`^Categories\s*:(.*?)$`),
 }
 
 func parseNames(line string, card *vdir.Card) {
