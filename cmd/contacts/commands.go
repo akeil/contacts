@@ -48,7 +48,7 @@ func add(cfg contacts.Configuration, firstName string, lastName string, nickName
 
 // list all contacts matching the given `query`.
 // Use an empty query to list all contacts.
-func list(cfg contacts.Configuration, query string) error {
+func list(cfg contacts.Configuration, query contacts.Query) error {
     addressbook := contacts.NewAddressbook(cfg.Addressbook)
     results, err := addressbook.Find(query)
     if err != nil {
@@ -73,7 +73,7 @@ func list(cfg contacts.Configuration, query string) error {
 
 // show details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
-func show(cfg contacts.Configuration, query string) error {
+func show(cfg contacts.Configuration, query contacts.Query) error {
     addressbook := contacts.NewAddressbook(cfg.Addressbook)
     card, err := selectOne(addressbook, query)
     if err != nil {
@@ -85,7 +85,7 @@ func show(cfg contacts.Configuration, query string) error {
 
 // edit details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
-func edit(cfg contacts.Configuration, query string) error {
+func edit(cfg contacts.Configuration, query contacts.Query) error {
     addressbook := contacts.NewAddressbook(cfg.Addressbook)
     card, err := selectOne(addressbook, query)
     if err != nil {
@@ -109,7 +109,7 @@ func edit(cfg contacts.Configuration, query string) error {
 
 // Helpers --------------------------------------------------------------------
 
-func selectOne(book *contacts.Addressbook, query string) (vdir.Card, error) {
+func selectOne(book *contacts.Addressbook, query contacts.Query) (vdir.Card, error) {
     var selected vdir.Card
     found, err := book.Find(query)
     if err != nil {
@@ -173,6 +173,9 @@ func displayName(card vdir.Card) string {
 // Main -----------------------------------------------------------------------
 
 func main() {
+    // -h for --help
+    kingpin.CommandLine.HelpFlag.Short('h')
+
     verbose := kingpin.Flag("verbose", "Verbose mode.").Short('v').Bool()
 
     addCmd := kingpin.Command("add", "Add a contact.")
@@ -182,11 +185,15 @@ func main() {
     addSkipEdit := addCmd.Flag("no-edit", "Skip editor").Short('E').Bool()
 
     listCmd := kingpin.Command("list", "List contacts.")
+    listCat := listCmd.Flag("categories", "Categories to search, comma separated.").Short('c').String()
     listQuery := listCmd.Arg("query", "Search term.").String()
 
     editCmd := kingpin.Command("edit", "Edit a contact.")
+    editCat := editCmd.Flag("categories", "Categories to search, comma separated.").Short('c').String()
     editQuery := editCmd.Arg("query", "Search term.").String()
+
     showCmd := kingpin.Command("show", "Show contact details.")
+    showCat := showCmd.Flag("categories", "Categories to search, comma separated.").Short('c').String()
     showQuery := showCmd.Arg("query", "Search term.").String()
 
     cmd := kingpin.Parse()
@@ -200,14 +207,26 @@ func main() {
     case "add":
         err = add(cfg, *addFirstName, *addLastName, *addNick, *addSkipEdit)
     case "list":
-        err = list(cfg, *listQuery)
+        err = list(cfg, contacts.Query{*listQuery, normalizedSplit(*listCat)})
     case "show":
-        err = show(cfg, *showQuery)
+        err = show(cfg, contacts.Query{*showQuery, normalizedSplit(*showCat)})
     case "edit":
-        err = edit(cfg, *editQuery)
+        err = edit(cfg, contacts.Query{*editQuery, normalizedSplit(*editCat)})
     }
 
     if err != nil {
         fmt.Println(err)
     }
+}
+
+func normalizedSplit(s string) []string {
+    result := []string{}
+    parts := strings.Split(s, ",")
+    for _, part := range parts {
+        x := strings.TrimSpace(part)
+        if x != "" {
+            result = append(result, part)
+        }
+    }
+    return result
 }

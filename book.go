@@ -24,7 +24,7 @@ func NewAddressbook(dirname string) *Addressbook {
     return book
 }
 
-func (ab *Addressbook) Find(query string) ([]vdir.Card, error) {
+func (ab *Addressbook) Find(query Query) ([]vdir.Card, error) {
     var err error
     var found []vdir.Card
     if ab.cards == nil {
@@ -35,7 +35,7 @@ func (ab *Addressbook) Find(query string) ([]vdir.Card, error) {
     }
 
     for _, card := range ab.cards {
-        if matches(card, query) {
+        if query.Matches(card) {
             found = append(found, card)
         }
     }
@@ -111,27 +111,61 @@ func (a ByName) Less(i, j int) bool {
 }
 
 // search helper
-func matches(card vdir.Card, query string) bool {
-    if contains(card.FormattedName, query){
+func QueryTerm(term string) Query {
+    return Query{term, []string{}}
+}
+
+type Query struct {
+    Term string
+    Categories []string
+}
+
+func (q Query) Matches(card vdir.Card) bool {
+    // Categories always match if not set
+    categoryMatch := true
+    if len(q.Categories) > 0 {
+        categoryMatch = q.matchCategories(card)
+    }
+    termMatch := q.matchTerm(card)
+    return categoryMatch && termMatch
+}
+
+func (q Query) matchCategories(card vdir.Card) bool {
+    for _, requested := range q.Categories {
+        for _, present := range card.Categories {
+            if strings.ToLower(requested) == strings.ToLower(present) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+func (q Query) matchTerm(card vdir.Card) bool {
+    if contains(card.FormattedName, q.Term) {
         return true
     }
-    if arrayContains(card.NickName, query) {
+    if arrayContains(card.NickName, q.Term) {
         return true
     }
-    if arrayContains(card.Name.FamilyName, query) {
+    if arrayContains(card.Name.FamilyName, q.Term) {
         return true
     }
-    if arrayContains(card.Name.GivenName, query) {
+    if arrayContains(card.Name.GivenName, q.Term) {
         return true
     }
-    if typedValuesContain(card.Email, query) {
+    if typedValuesContain(card.Email, q.Term) {
         return true
     }
-    if typedValuesContain(card.Telephones, query) {
+    if typedValuesContain(card.Telephones, q.Term) {
         return true
     }
 
     return false
+}
+
+func contains(s, q string) bool {
+    return strings.Contains(strings.ToLower(s), strings.ToLower(q))
 }
 
 func typedValuesContain(tvalues []vdir.TypedValue, query string) bool {
@@ -150,11 +184,6 @@ func arrayContains(texts []string, query string) bool {
         }
     }
     return false
-}
-
-func contains(text, what string) bool {
-    text, what = strings.ToLower(text), strings.ToLower(what)
-    return strings.HasSuffix(text, what) || strings.HasPrefix(text, what)
 }
 
 // Save a vCard to the given directory
