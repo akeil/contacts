@@ -1,5 +1,4 @@
-----------------[ {{ .FormattedName }} ]----------------
-{{if .NickName }}
+--------------------[ {{ .FormattedName }} ]--------------------{{if .NickName }}
 Nick         : {{ .NickName | join }}{{ end }}{{ if .Name.HonorificNames }}
 Prefixes     : {{ .Name.HonorificNames | join }}{{ end }}
 First Name   : {{ .Name.GivenName | join }}
