@@ -38,3 +38,6 @@ home:
 {{ range .Addresses }}
 {{ .Type | join }}: ; ; {{ .Street }}; {{ .Locality }}; {{ .Region }}; {{ .PostalCode }}; {{ .CountryName}}{{ end }}
 #home: ; ; ; ; ; ;
+
+# Notes -----------------------------------------------------------------------
+{{ .Note }}

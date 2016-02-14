@@ -97,6 +97,11 @@ func parseTemplate(scanner *bufio.Scanner, card *vdir.Card) error {
             card.Addresses = []vdir.Address{}
             f = parsePostalAdress
 
+        } else if strings.HasPrefix(line, "# Notes") {
+            card.Note = ""
+            f = parseNote
+            continue
+
         } else if strings.HasPrefix(line, "#") {
             continue
         } else if line == "" {
@@ -176,6 +181,13 @@ func parseURL(line string, card *vdir.Card) {
     if err == nil {
         card.Url = append(card.Url, value)
     }
+}
+
+func parseNote(line string, card *vdir.Card) {
+    if card.Note != "" {
+        card.Note += "\n"
+    }
+    card.Note += line
 }
 
 var typedValueRegex = regexp.MustCompile(`^([a-zA-Z][a-zA-Z, ]+?)\s*:\s*(.*?)$`)
