@@ -84,12 +84,19 @@ func parseTemplate(scanner *bufio.Scanner, card *vdir.Card) error {
         if strings.HasPrefix(line, "# Mail Adresses") {
             card.Email = []vdir.TypedValue{}
             f = parseMailAdress
+
         } else if strings.HasPrefix(line, "# Phone Numbers") {
             card.Telephones = []vdir.TypedValue{}
             f = parsePhoneNumber
-        } else if strings.HasPrefix(line, "# Postal Addresses"){
+
+        } else if strings.HasPrefix(line, "# URLs") {
+            card.Url = []vdir.TypedValue{}
+            f = parseURL
+
+        } else if strings.HasPrefix(line, "# Postal Addresses") {
             card.Addresses = []vdir.Address{}
             f = parsePostalAdress
+
         } else if strings.HasPrefix(line, "#") {
             continue
         } else if line == "" {
@@ -109,7 +116,6 @@ var matchers = map[string] *regexp.Regexp {
     "title": regexp.MustCompile(`^Title\s*: (.*?)$`),
     "role": regexp.MustCompile(`^Role\s*: (.*?)$`),
     "org": regexp.MustCompile(`^Organization\s*: (.*?)$`),
-    "url": regexp.MustCompile(`^URL\s*: (.*?)$`),
 }
 
 func parseNames(line string, card *vdir.Card) {
@@ -131,8 +137,6 @@ func parseNames(line string, card *vdir.Card) {
                 card.Role = value
             case "org":
                 card.Org = value
-            case "url":
-                card.URL = value
             }
         }
     }
@@ -149,6 +153,13 @@ func parsePhoneNumber(line string, card *vdir.Card) {
     value, err := typedValue(line)
     if err == nil {
         card.Telephones = append(card.Telephones, value)
+    }
+}
+
+func parseURL(line string, card *vdir.Card) {
+    value, err := typedValue(line)
+    if err == nil {
+        card.Url = append(card.Url, value)
     }
 }
 

@@ -14,6 +14,9 @@ Mail Adresses:
 {{ if ( len .Telephones ) gt 0 }}Phone Numbers:
 {{ range .Telephones }}- [{{ .Type | join }}] {{ .Value }}
 {{ end }}{{ end }}
+{{ if (len .Url) gt 0 }}URLs:
+{{ range .Url }}- [{{ .Type | join }}] {{ .Value }}
+{{ end }}{{ end }}
 {{ if ( len .Addresses ) gt 0 }}Adresses:
 {{ range .Addresses }}- [{{ .Type | join }}]
   {{.Street  }}

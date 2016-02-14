@@ -5,7 +5,6 @@ Last Name    : {{ .Name.FamilyName | join }}
 Title        : {{ .Title }}
 Role         : {{ .Role }}
 Organization : {{ .Org }}
-URL          : {{ .URL }}
 
 # Mail Adresses ---------------------------------------------------------------
 # Format is TYPE[, TYPE]: ADDRESS
@@ -18,6 +17,13 @@ home:
 # Format is TYPE[, TYPE]: NUMBER
 # Types are WORK, HOME, CELL
 {{ range .Telephones }}
+{{ .Type | join }}: {{ .Value }}{{ end }}
+home:
+
+# URLs ------------------------------------------------------------------------
+# Format is TYPE[, TYPE]: URL
+# Types are HOME, WORK
+{{ range .Url }}
 {{ .Type | join }}: {{ .Value }}{{ end }}
 home:
 
