@@ -28,7 +28,7 @@ func ReadConfiguration() Configuration {
 
     paths := []string{
         "/etc/contacts.config.json",
-        "/home/akeil/.config/contacts.config.json",
+        replaceHomeDir("~/.config/contacts.config.json"),
     }
     for _, path := range paths {
         file, err := os.Open(path)
@@ -36,6 +36,8 @@ func ReadConfiguration() Configuration {
             log.Println("Could not read " + path)
             log.Println(err)
             continue
+        } else {
+            log.Printf("Read configuration from %s", path)
         }
         decoder := json.NewDecoder(file)
         //cfg := Configuration{"", ""}
@@ -52,7 +54,13 @@ func ReadConfiguration() Configuration {
 
     config.Addressbook = replaceHomeDir(config.Addressbook)
     config.Editor = replaceHomeDir(config.Editor)
+    logConfig(config)
     return config
+}
+
+func logConfig(cfg Configuration) {
+    log.Printf("Addressbook: %s", cfg.Addressbook)
+    log.Printf("Editor: %s", cfg.Editor)
 }
 
 func replaceHomeDir(path string) string {

@@ -194,7 +194,6 @@ func main() {
         log.SetOutput(ioutil.Discard)
     }
     cfg := contacts.ReadConfiguration()
-    log.Println(cfg)
 
     var err error
     switch cmd {
