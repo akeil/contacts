@@ -105,6 +105,10 @@ var matchers = map[string] *regexp.Regexp {
     "firstName": regexp.MustCompile(`^First Name\s*: (.*?)$`),
     "lastName": regexp.MustCompile(`^Last Name\s*: (.*?)$`),
     "nickName": regexp.MustCompile(`^Nick\s*: (.*?)$`),
+    "title": regexp.MustCompile(`^Title\s*: (.*?)$`),
+    "role": regexp.MustCompile(`^Role\s*: (.*?)$`),
+    "org": regexp.MustCompile(`^Organization\s*: (.*?)$`),
+    "url": regexp.MustCompile(`^URL\s*: (.*?)$`),
 }
 
 func parseNames(line string, card *vdir.Card) {
@@ -118,29 +122,43 @@ func parseNames(line string, card *vdir.Card) {
                 card.Name.FamilyName = []string{value}
             case "nickName":
                 card.NickName = []string{value}
+            case "title":
+                card.Title = value
+            case "role":
+                card.Role = value
+            case "org":
+                card.Org = value
+            case "url":
+                card.URL = value
             }
         }
     }
 }
 
-var typedValueRegex = regexp.MustCompile(`^([a-z]+)\s*:\s*(.*?)$`)
-
 func parseMailAdress(line string, card *vdir.Card) {
-    if groups := typedValueRegex.FindStringSubmatch(line); groups != nil {
-        kind := groups[1]
-        value := groups[2]
-        tvalue := vdir.TypedValue{[]string{kind}, value}
-        card.Email = append(card.Email, tvalue)
+    value, err := typedValue(line)
+    if err == nil {
+        card.Email = append(card.Email, value)
     }
 }
 
 func parsePhoneNumber(line string, card *vdir.Card) {
-    if groups := typedValueRegex.FindStringSubmatch(line); groups != nil {
-        kind := groups[1]
-        value := groups[2]
-        tvalue := vdir.TypedValue{[]string{kind}, value}
-        card.Telephones = append(card.Telephones, tvalue)
+    value, err := typedValue(line)
+    if err == nil {
+        card.Telephones = append(card.Telephones, value)
     }
+}
+
+var typedValueRegex = regexp.MustCompile(`^([a-zA-Z][a-zA-Z, ]+?)\s*:\s*(.*?)$`)
+
+func typedValue(line string) (vdir.TypedValue, error) {
+    var result vdir.TypedValue
+    if groups := typedValueRegex.FindStringSubmatch(line); groups != nil {
+        kinds := parseKinds(groups[1])
+        value := groups[2]
+        return vdir.TypedValue{kinds, value}, nil
+    }
+    return result, errors.New("")
 }
 
 // Format "TYPE: ?; ?; STREET; CITY; REGION; POSTAL_CODE; COUNTRY"
@@ -150,7 +168,7 @@ var addrRegex = regexp.MustCompile(
 func parsePostalAdress(line string, card *vdir.Card) {
     if groups := addrRegex.FindStringSubmatch(line); groups != nil {
         addr := vdir.Address{
-            []string{strings.TrimSpace(groups[1])},
+            parseKinds(groups[1]),         //  Types
             "",  // Label
             "",  // PostOfficeBox
             "",  // ExtendedAddress
@@ -162,6 +180,14 @@ func parsePostalAdress(line string, card *vdir.Card) {
         }
         card.Addresses = append(card.Addresses, addr)
     }
+}
+
+func parseKinds(kindstr string) []string {
+    kinds := strings.Split(kindstr, ",")
+    for index := range kinds {
+        kinds[index] = strings.TrimSpace(strings.ToLower(kinds[index]))
+    }
+    return kinds
 }
 
 func ShowDetails(card vdir.Card) error {

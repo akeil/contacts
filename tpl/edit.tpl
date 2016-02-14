@@ -1,6 +1,10 @@
-Nick       : {{ .NickName | join }}
-First Name : {{ .Name.GivenName | join }}
-Last Name  : {{ .Name.FamilyName | join }}
+Nick         : {{ .NickName | join }}
+First Name   : {{ .Name.GivenName | join }}
+Last Name    : {{ .Name.FamilyName | join }}
+Title        : {{ .Title }}
+Role         : {{ .Role }}
+Organization : {{ .Org }}
+URL          : {{ .URL }}
 
 # Mail Adresses ---------------------------------------------------------------
 # Format is TYPE[, TYPE]: ADDRESS

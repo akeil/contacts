@@ -5,6 +5,7 @@ package contacts
 import (
     "io"
     "log"
+    "strings"
     "text/template"
 
     "github.com/xconstruct/vdir"
@@ -35,12 +36,5 @@ func loadTemplate(name string) (*template.Template, error) {
 }
 
 func join(list []string) string {
-    result := ""
-    for i := 0; i < len(list); i++ {
-        if i > 0 {
-            result += ", "
-        }
-        result += list[i]
-    }
-    return result
+    return strings.Join(list, ", ")
 }
