@@ -2,11 +2,13 @@
 Nick         : {{ .NickName | join }}{{ end }}{{ if .Name.HonorificNames }}
 Prefixes     : {{ .Name.HonorificNames | join }}{{ end }}
 First Name   : {{ .Name.GivenName | join }}
-Last Name    : {{ .Name.FamilyName | join }}{{ if .Title }}
+Last Name    : {{ .Name.FamilyName | join }}{{ if (len .Categories) gt 0 }}
+
+Categories   : {{ .Categories | join }}{{ end }}
+{{ if .Title }}
 Title        : {{ .Title }}{{ end }}{{ if .Role }}
 Role         : {{ .Role }}{{ end }}{{ if .Org }}
-Organization : {{ .Org }}{{ end }}{{ if .URL }}
-URL          : {{ .URL }}{{ end }}
+Organization : {{ .Org }}{{ end }}
 {{ if ( len .Email ) gt 0 }}
 Mail Adresses:
 {{ range .Email }}- [{{ .Type | join }}] {{ .Value }}
@@ -22,5 +24,7 @@ Mail Adresses:
   {{.Street  }}
   {{ .PostalCode }} {{ .Locality }}
   {{ .CountryName }}
-{{end}}{{ end }}
+{{end}}{{ end }}{{ if .Note }}
+Notes:
+{{ .Note}}{{ end }}
 ---------------------------------------------------

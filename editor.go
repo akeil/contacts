@@ -116,6 +116,7 @@ var matchers = map[string] *regexp.Regexp {
     "title": regexp.MustCompile(`^Title\s*: (.*?)$`),
     "role": regexp.MustCompile(`^Role\s*: (.*?)$`),
     "org": regexp.MustCompile(`^Organization\s*: (.*?)$`),
+    "categories": regexp.MustCompile(`^Categories\s*: (.*?)$`),
 }
 
 func parseNames(line string, card *vdir.Card) {
@@ -124,22 +125,36 @@ func parseNames(line string, card *vdir.Card) {
             value := strings.TrimSpace(groups[1])
             switch key {
             case "prefix":
-                card.Name.HonorificNames = []string{value}
+                card.Name.HonorificNames = multiple(value)
             case "firstName":
-                card.Name.GivenName = []string{value}
+                card.Name.GivenName = multiple(value)
             case "lastName":
-                card.Name.FamilyName = []string{value}
+                card.Name.FamilyName = multiple(value)
             case "nickName":
-                card.NickName = []string{value}
+                card.NickName = multiple(value)
             case "title":
                 card.Title = value
             case "role":
                 card.Role = value
             case "org":
                 card.Org = value
+            case "categories":
+                card.Categories = multiple(value)
             }
         }
     }
+}
+
+func multiple(value string) []string {
+    values := strings.Split(value, ",")
+    result := []string{}
+    for _, value := range values {
+        x := strings.TrimSpace(value)
+        if x != "" {
+            result = append(result, x)
+        }
+    }
+    return result
 }
 
 func parseMailAdress(line string, card *vdir.Card) {
