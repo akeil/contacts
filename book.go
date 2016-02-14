@@ -29,9 +29,9 @@ func (b *Addressbook) Find(query Query) ([]vdir.Card, error) {
 	var found []vdir.Card
 	if b.cards == nil {
 		err = b.load()
-	}
-	if err != nil {
-		return found, err
+		if err != nil {
+			return found, err
+		}
 	}
 
 	for _, card := range b.cards {
@@ -48,6 +48,7 @@ func (b *Addressbook) Find(query Query) ([]vdir.Card, error) {
 // also set the Rev field
 func (b Addressbook) Save(card vdir.Card) error {
 	if card.Uid == "" {
+		// assume this is a new contact
 		card.Uid = uuid.New()
 	}
 	// rev, e.g. 1995-10-31T22:27:10Z
@@ -59,8 +60,8 @@ func (b Addressbook) Save(card vdir.Card) error {
 		return err
 	}
 
-	fullpath := b.cardPath(card)
-	file, err := os.Create(fullpath)
+	path := b.cardPath(card)
+	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -78,13 +79,11 @@ func (b Addressbook) Delete(card vdir.Card) error {
 
 func (b *Addressbook) load() error {
 	log.Printf("Loading from %s", b.Dirname)
-	b.cards = []vdir.Card{}
 
 	info, err := os.Stat(b.Dirname)
 	if err != nil {
 		return err
-	}
-	if !info.IsDir() {
+	} else if !info.IsDir() {
 		return errors.New("Not a directory")
 	}
 	dir, err := os.Open(b.Dirname)
@@ -98,6 +97,7 @@ func (b *Addressbook) load() error {
 		return err
 	}
 
+	cards := []vdir.Card{}
 	for _, file := range files {
 		if file.Mode().IsRegular() {
 			if filepath.Ext(file.Name()) == ".vcf" {
@@ -105,10 +105,11 @@ func (b *Addressbook) load() error {
 				if err != nil {
 					return err
 				}
-				b.cards = append(b.cards, *card)
+				cards = append(cards, *card)
 			}
 		}
 	}
+	b.cards = cards
 	return nil
 }
 
@@ -149,10 +150,6 @@ func (a ByName) Less(i, j int) bool {
 }
 
 // search helper
-func QueryTerm(term string) Query {
-	return Query{term, []string{}}
-}
-
 type Query struct {
 	Term       string
 	Categories []string

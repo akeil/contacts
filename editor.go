@@ -15,14 +15,17 @@ import (
 	"strings"
 )
 
+// Start the configured editor with details of the given card.
+// When the editor exits, apply changes to the card;
+// return `true` if the card was modified.
 func EditCard(cfg Configuration, card *vdir.Card) (bool, error) {
 	modified := false
 	tempfile, err := ioutil.TempFile("", "edit-card-")
 	if err != nil {
 		return modified, err
 	}
-
 	defer os.Remove(tempfile.Name())
+
 	err = FillTemplate(tempfile, "edit.tpl", card)
 	if err != nil {
 		return modified, err
@@ -66,9 +69,9 @@ func EditCard(cfg Configuration, card *vdir.Card) (bool, error) {
 	return modified, err
 }
 
-func calcMd5(filename string) string {
+func calcMd5(path string) string {
 	hash := md5.New()
-	file, err := os.Open(filename)
+	file, err := os.Open(path)
 	if err != nil {
 		return ""
 	}
