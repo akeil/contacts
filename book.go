@@ -67,7 +67,7 @@ func (ab *Addressbook) load() error{
     for _, file := range files {
         if file.Mode().IsRegular() {
             if filepath.Ext(file.Name()) == ".vcf" {
-                card, err := loadCard(ab.Dirname + "/" + file.Name())
+                card, err := loadCard(filepath.Join(ab.Dirname, file.Name()))
                 if err != nil {
                     return err
                 }
@@ -174,7 +174,7 @@ func Save(dirname string, card vdir.Card) error {
         return err
     }
 
-    fullpath := dirname + "/" + card.Uid + ".vcf"
+    fullpath := filepath.Join(dirname, card.Uid + ".vcf")
     file, err := os.Create(fullpath)
     if err != nil {
         return err
