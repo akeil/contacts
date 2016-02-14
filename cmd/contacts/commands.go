@@ -61,9 +61,8 @@ func (c *controller) add(unused *kingpin.ParseContext) error {
     book := contacts.NewAddressbook(cfg.Addressbook)
     card := c.card()
     if !c.skipEdit {
-        err = contacts.EditCard(cfg, &card)
+        _, err = contacts.EditCard(cfg, &card)
         if err != nil {
-            // TODO: edit w/o change is an error
             return err
         }
     }
@@ -124,10 +123,15 @@ func (c *controller) edit(unused *kingpin.ParseContext) error {
         return err
     }
 
-    err = contacts.EditCard(cfg, &card)
+    modified, err := contacts.EditCard(cfg, &card)
     if err != nil {
         return err
     }
+    if !modified {
+        fmt.Println("Not modified.")
+        return nil
+    }
+
     err = book.Save(card)
     if err != nil {
         return err

@@ -15,16 +15,17 @@ import (
     "github.com/xconstruct/vdir"
 )
 
-func EditCard(cfg Configuration, card *vdir.Card) error {
+func EditCard(cfg Configuration, card *vdir.Card) (bool, error) {
+    modified := false
     tempfile, err := ioutil.TempFile("", "edit-card-")
     if err != nil {
-        return err
+        return modified, err
     }
 
     defer os.Remove(tempfile.Name())
     err = FillTemplate(tempfile, "edit.tpl", card)
     if err != nil {
-        return err
+        return modified, err
     }
     hashBefore := calcMd5(tempfile.Name())
 
@@ -35,32 +36,34 @@ func EditCard(cfg Configuration, card *vdir.Card) error {
     cmd.Stderr = os.Stderr
     err = cmd.Run()
     if err != nil {
-        return err
+        return modified, err
     }
 
     if hashBefore != "" {
         hashAfter := calcMd5(tempfile.Name())
         log.Println("Hash Before: " + hashBefore)
         log.Println("Hash After:  " + hashAfter)
-        if hashBefore == hashAfter {
-            return errors.New("Contact was not changed")
-        }
+        modified = hashBefore != hashAfter
+    } else {
+        // cannot compare hashes, assume modified
+        modified = true
+    }
+
+    if !modified {
+        return modified, nil
     }
 
     file, err := os.Open(tempfile.Name())
     if err != nil {
-        return err
+        return modified, err
     }
     defer file.Close()
 
     reader := bufio.NewReader(file)
     scanner := bufio.NewScanner(reader)
     err = parseTemplate(scanner, card)
-    if err != nil {
-        return err
-    }
 
-    return err
+    return modified, err
 }
 
 func calcMd5(filename string) string {
