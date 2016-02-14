@@ -24,7 +24,7 @@ import (
 // Add a new contact
 func add(cfg contacts.Configuration, firstName string, lastName string, nickName string, skipEdit bool) error {
     var err error
-    addressbook := contacts.NewAddressbook(cfg.Addressbook)
+    book := contacts.NewAddressbook(cfg.Addressbook)
     card := new(vdir.Card)
     card.Name.GivenName = []string{firstName}
     card.Name.FamilyName = []string{nickName}
@@ -37,7 +37,7 @@ func add(cfg contacts.Configuration, firstName string, lastName string, nickName
             return err
         }
     }
-    err = addressbook.Save(*card)
+    err = book.Save(*card)
     if err != nil {
         return err
     }
@@ -49,8 +49,8 @@ func add(cfg contacts.Configuration, firstName string, lastName string, nickName
 // list all contacts matching the given `query`.
 // Use an empty query to list all contacts.
 func list(cfg contacts.Configuration, query contacts.Query) error {
-    addressbook := contacts.NewAddressbook(cfg.Addressbook)
-    results, err := addressbook.Find(query)
+    book := contacts.NewAddressbook(cfg.Addressbook)
+    results, err := book.Find(query)
     if err != nil {
         return err
     } else if len(results) == 0 {
@@ -74,20 +74,19 @@ func list(cfg contacts.Configuration, query contacts.Query) error {
 // show details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
 func show(cfg contacts.Configuration, query contacts.Query) error {
-    addressbook := contacts.NewAddressbook(cfg.Addressbook)
-    card, err := selectOne(addressbook, query)
+    book := contacts.NewAddressbook(cfg.Addressbook)
+    card, err := selectOne(book, query)
     if err != nil {
         return err
     }
-
     return contacts.ShowDetails(card)
 }
 
 // edit details for a single contact that matches the given `query`.
 // If multiple contacts match, user selects one.
 func edit(cfg contacts.Configuration, query contacts.Query) error {
-    addressbook := contacts.NewAddressbook(cfg.Addressbook)
-    card, err := selectOne(addressbook, query)
+    book := contacts.NewAddressbook(cfg.Addressbook)
+    card, err := selectOne(book, query)
     if err != nil {
         return err
     }
@@ -96,7 +95,7 @@ func edit(cfg contacts.Configuration, query contacts.Query) error {
     if err != nil {
         return err
     }
-    err = addressbook.Save(card)
+    err = book.Save(card)
     if err != nil {
         return err
     }
@@ -107,13 +106,13 @@ func edit(cfg contacts.Configuration, query contacts.Query) error {
 
 // delete a contact
 func del(cfg contacts.Configuration, query contacts.Query) error {
-    addressbook := contacts.NewAddressbook(cfg.Addressbook)
-    card, err := selectOne(addressbook, query)
+    book := contacts.NewAddressbook(cfg.Addressbook)
+    card, err := selectOne(book, query)
     if err != nil {
         return err
     }
 
-    err = addressbook.Delete(card)
+    err = book.Delete(card)
     if err == nil {
         fmt.Println("Contact deleted.")
     }
