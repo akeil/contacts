@@ -96,7 +96,6 @@ func edit(cfg contacts.Configuration, query contacts.Query) error {
     if err != nil {
         return err
     }
-    // TODO check whether the card was changed
     err = contacts.Save(addressbook.Dirname, card)
     if err != nil {
         return err
@@ -104,6 +103,21 @@ func edit(cfg contacts.Configuration, query contacts.Query) error {
 
     fmt.Println("Contact saved.")
     return contacts.ShowDetails(card)
+}
+
+// delete a contact
+func del(cfg contacts.Configuration, query contacts.Query) error {
+    addressbook := contacts.NewAddressbook(cfg.Addressbook)
+    card, err := selectOne(addressbook, query)
+    if err != nil {
+        return err
+    }
+
+    err = addressbook.Delete(card)
+    if err == nil {
+        fmt.Println("Contact deleted.")
+    }
+    return err
 }
 
 
@@ -196,6 +210,10 @@ func main() {
     showCat := showCmd.Flag("categories", "Categories to search, comma separated.").Short('c').String()
     showQuery := showCmd.Arg("query", "Search term.").String()
 
+    delCmd := kingpin.Command("del", "Delete a contact.")
+    delCat := delCmd.Flag("categories", "Categories to search, comma separated.").Short('c').String()
+    delQuery := delCmd.Arg("query", "Search term.").String()
+
     cmd := kingpin.Parse()
     if !*verbose {
         log.SetOutput(ioutil.Discard)
@@ -212,6 +230,8 @@ func main() {
         err = show(cfg, contacts.Query{*showQuery, normalizedSplit(*showCat)})
     case "edit":
         err = edit(cfg, contacts.Query{*editQuery, normalizedSplit(*editCat)})
+    case "del":
+        err = del(cfg, contacts.Query{*delQuery, normalizedSplit(*delCat)})
     }
 
     if err != nil {

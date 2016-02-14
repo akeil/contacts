@@ -24,17 +24,17 @@ func NewAddressbook(dirname string) *Addressbook {
     return book
 }
 
-func (ab *Addressbook) Find(query Query) ([]vdir.Card, error) {
+func (b *Addressbook) Find(query Query) ([]vdir.Card, error) {
     var err error
     var found []vdir.Card
-    if ab.cards == nil {
-        err = ab.load()
+    if b.cards == nil {
+        err = b.load()
     }
     if err != nil {
         return found, err
     }
 
-    for _, card := range ab.cards {
+    for _, card := range b.cards {
         if query.Matches(card) {
             found = append(found, card)
         }
@@ -42,18 +42,24 @@ func (ab *Addressbook) Find(query Query) ([]vdir.Card, error) {
     return found, err
 }
 
-func (ab *Addressbook) load() error{
-    log.Printf("Loading from %s", ab.Dirname)
-    ab.cards = []vdir.Card{}
+func (b Addressbook) Delete(card vdir.Card) error {
+    path := b.cardPath(card)
+    // TODO: move to trash
+    return os.Remove(path)
+}
 
-    info, err := os.Stat(ab.Dirname)
+func (b *Addressbook) load() error{
+    log.Printf("Loading from %s", b.Dirname)
+    b.cards = []vdir.Card{}
+
+    info, err := os.Stat(b.Dirname)
     if err != nil {
         return err
     }
     if !info.IsDir() {
         return errors.New("Not a directory")
     }
-    dir, err := os.Open(ab.Dirname)
+    dir, err := os.Open(b.Dirname)
     if err != nil {
         return err
     }
@@ -67,11 +73,11 @@ func (ab *Addressbook) load() error{
     for _, file := range files {
         if file.Mode().IsRegular() {
             if filepath.Ext(file.Name()) == ".vcf" {
-                card, err := loadCard(filepath.Join(ab.Dirname, file.Name()))
+                card, err := loadCard(filepath.Join(b.Dirname, file.Name()))
                 if err != nil {
                     return err
                 }
-                ab.cards = append(ab.cards, *card)
+                b.cards = append(b.cards, *card)
             }
         }
     }
@@ -93,6 +99,10 @@ func loadCard(fullpath string) (*vdir.Card, error) {
         return card, err
     }
     return card, nil
+}
+
+func (b Addressbook) cardPath(card vdir.Card) string {
+    return filepath.Join(b.Dirname, card.Uid + ".vcf")
 }
 
 // Sort Helper
