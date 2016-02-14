@@ -102,6 +102,7 @@ func parseTemplate(scanner *bufio.Scanner, card *vdir.Card) error {
 }
 
 var matchers = map[string] *regexp.Regexp {
+    "prefix": regexp.MustCompile(`^Prefix\s*: (.*?)$`),
     "firstName": regexp.MustCompile(`^First Name\s*: (.*?)$`),
     "lastName": regexp.MustCompile(`^Last Name\s*: (.*?)$`),
     "nickName": regexp.MustCompile(`^Nick\s*: (.*?)$`),
@@ -116,6 +117,8 @@ func parseNames(line string, card *vdir.Card) {
         if groups := matcher.FindStringSubmatch(line); groups != nil {
             value := strings.TrimSpace(groups[1])
             switch key {
+            case "prefix":
+                card.Name.HonorificNames = []string{value}
             case "firstName":
                 card.Name.GivenName = []string{value}
             case "lastName":
@@ -153,12 +156,18 @@ var typedValueRegex = regexp.MustCompile(`^([a-zA-Z][a-zA-Z, ]+?)\s*:\s*(.*?)$`)
 
 func typedValue(line string) (vdir.TypedValue, error) {
     var result vdir.TypedValue
+    var err error
     if groups := typedValueRegex.FindStringSubmatch(line); groups != nil {
         kinds := parseKinds(groups[1])
         value := groups[2]
-        return vdir.TypedValue{kinds, value}, nil
+        if value == "" {
+            err = errors.New("")
+        }
+        result = vdir.TypedValue{kinds, value}
+    } else {
+        err = errors.New("")
     }
-    return result, errors.New("")
+    return result, err
 }
 
 // Format "TYPE: ?; ?; STREET; CITY; REGION; POSTAL_CODE; COUNTRY"

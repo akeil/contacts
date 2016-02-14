@@ -1,5 +1,6 @@
 --------------------[ Contact ]--------------------{{if .NickName }}
-Nick         : {{ .NickName | join }}{{end}}
+Nick         : {{ .NickName | join }}{{ end }}{{ if .Name.HonorificNames }}
+Prefixes     : {{ .Name.HonorificNames | join }}{{ end }}
 First Name   : {{ .Name.GivenName | join }}
 Last Name    : {{ .Name.FamilyName | join }}{{ if .Title }}
 Title        : {{ .Title }}{{ end }}{{ if .Role }}
