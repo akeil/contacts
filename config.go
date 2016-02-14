@@ -5,21 +5,15 @@ import (
     "io"
     "log"
     "os"
+    "os/user"
+    "path/filepath"
+    "strings"
 )
 
 
 type Configuration struct {
     Addressbook string
     Editor string
-}
-
-func (s Configuration) merge(other Configuration) {
-    if other.Addressbook != "" {
-        s.Addressbook = other.Addressbook
-    }
-    if other.Editor != "" {
-        s.Editor = other.Editor
-    }
 }
 
 func ReadConfiguration() Configuration {
@@ -54,7 +48,23 @@ func ReadConfiguration() Configuration {
                 break
             }
         }
-        //config.merge(cfg)
     }
+
+    config.Addressbook = replaceHomeDir(config.Addressbook)
+    config.Editor = replaceHomeDir(config.Editor)
     return config
+}
+
+func replaceHomeDir(path string) string {
+    user, err := user.Current()
+    if err != nil {
+        return path
+    }
+
+    if strings.HasPrefix(path, "~") {
+        return filepath.Join(user.HomeDir, path[1:])
+    }else if strings.HasPrefix(path, "$HOME") {
+        return filepath.Join(user.HomeDir, path[5:])
+    }
+    return path
 }

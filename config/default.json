@@ -1,4 +1,4 @@
 {
-    "Addressbook": "/home/akeil/contacts",
-    "Editor": "/usr/bin/gedit"
+    "Addressbook": "~/contacts",
+    "Editor": "/usr/bin/nano"
 }
