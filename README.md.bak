@@ -1,5 +1,5 @@
 # Addressbook
-A Command line address book that works with a collection of
+A Command line addressbook that works with a collection of
 [vCard](https://tools.ietf.org/html/rfc6350) files in a single directory.
 
 
@@ -11,7 +11,7 @@ To `add` a new contact:
 ```
 $ card add -f John -l Doe
 ```
-Will add a new contact to the address book and open it in the editor.
+Will add a new contact to the addressbook and open it in the editor.
 
 To `edit` an existing contact:
 ```
@@ -60,4 +60,4 @@ The configuration file looks like this:
 - [khard](https://github.com/scheibler/khard/) offers the same functionality,
   written in Python.
 - [vdirsyncer](https://github.com/untitaker/vdirsyncer/) can be used to sync
-  two or more address books.
+  two or more adressbooks.
