@@ -3,11 +3,14 @@ package contacts
 // go:generate go-bindata -pkg $GOPACKAGE -o assets.go tpl/
 
 import (
+	"fmt"
 	"io"
 	"log"
+	"sort"
 	"strings"
 	"text/template"
 
+	"github.com/gosuri/uitable"
 	"github.com/xconstruct/vdir"
 )
 
@@ -37,4 +40,50 @@ func loadTemplate(name string) (*template.Template, error) {
 
 func join(list []string) string {
 	return strings.Join(list, ", ")
+}
+
+// Render a list of cards
+func ShowList(cards []vdir.Card, format string) {
+	sort.Sort(ByName(cards))
+	switch format {
+	case "sup":
+		renderSupContacts(cards)
+	default:
+		renderTable(cards)
+	}
+}
+
+// render card data into a table for display
+func renderTable(cards []vdir.Card) {
+	table := uitable.New()
+	table.Separator = "  "
+	table.AddRow("NAME", "MAIL", "PHONE")
+
+	for _, card := range cards {
+		table.AddRow(FormatName(card),
+			PrimaryMail(card),
+			PrimaryPhone(card))
+	}
+
+	fmt.Println(table)
+}
+
+// render card data into a format suitable for sup contacts.txt.
+// This is one line per contact, each line looks like this:
+// {nick}: {firstName} {lastName} <{mail}>
+func renderSupContacts(cards []vdir.Card) {
+	template := "%v: %v <%v>\n"
+	for _, card := range cards {
+		// filter out cards that would create invalid entries
+		if FormatNickName(card) == "" {
+			continue
+		} else if FormatName(card) == "" {
+			continue
+		} else if PrimaryMail(card) == "" {
+			continue
+		}
+
+		fmt.Printf(template, strings.ToLower(FormatNickName(card)),
+			FormatName(card), PrimaryMail(card))
+	}
 }

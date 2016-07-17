@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/gosuri/uitable"
 	"github.com/xconstruct/vdir"
 
 	"akeil.net/contacts"
@@ -27,6 +26,7 @@ type controller struct {
 	lastName   string
 	nickName   string
 	skipEdit   bool
+	format	   string
 }
 
 func (c *controller) query() contacts.Query {
@@ -86,17 +86,7 @@ func (c *controller) list(unused *kingpin.ParseContext) error {
 		fmt.Println("No match.")
 		return nil
 	}
-
-	table := uitable.New()
-	table.Separator = "  "
-	table.AddRow("NAME", "MAIL", "PHONE")
-	sort.Sort(contacts.ByName(results))
-	for _, card := range results {
-		table.AddRow(contacts.FormatName(card),
-			contacts.PrimaryMail(card),
-			contacts.PrimaryPhone(card))
-	}
-	fmt.Println(table)
+	contacts.ShowList(results, c.format)
 	return nil
 }
 
@@ -251,6 +241,9 @@ func main() {
 	ls := app.Command("ls", "List contacts").Action(ctl.list)
 	catFlag(ls, ctl)
 	queryArg(ls, ctl)
+	ls.Flag("format", "Output format (default, sup)").
+		Short('f').
+		StringVar(&ctl.format)
 
 	add := app.Command("add", "Add a new contact.").Action(ctl.add)
 	add.Flag("first", "First Name").Short('f').StringVar(&ctl.firstName)

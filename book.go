@@ -221,6 +221,11 @@ func arrayContains(texts []string, query string) bool {
 	return false
 }
 
+// Format a card's nick name to a string
+func FormatNickName(card vdir.Card) string {
+	return strings.Join(card.NickName, " ")
+}
+
 // Create the Full Name from first name and last name
 func FormatName(card vdir.Card) string {
 	var name string
