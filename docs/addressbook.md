@@ -148,7 +148,7 @@ from the contacts name. E.g.:
 * mail addresses
 * phone numbers
 * postal addresses
-* birthday(?)
+* birthday
 
 Include calculated properties for the *preferred*
 phone number, mail address, etc.
@@ -272,6 +272,10 @@ Mails can have a `TYPE` parameter like
 
 * work
 * more?
+
+
+### BDAY (Birthday)
+The Birthday, formatted as `yyyymmdd`, e.g. 19700131.
 
 
 ## Editor Template
@@ -434,12 +438,12 @@ sequence.
 
 Here is a sample template:
 ```
-First Name: 
-Last Name : 
-Nickname  : 
+First Name:
+Last Name :
+Nickname  :
 
 \# phone numbers
-Phone: 
+Phone:
 
 \# mail addresses
 Mail:

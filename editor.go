@@ -128,6 +128,7 @@ var matchers = map[string]*regexp.Regexp{
 	"role":       regexp.MustCompile(`^Role\s*:(.*?)$`),
 	"org":        regexp.MustCompile(`^Organization\s*:(.*?)$`),
 	"categories": regexp.MustCompile(`^Categories\s*:(.*?)$`),
+	"birthday":   regexp.MustCompile(`^Birthday\s*:(.*?)$`),
 }
 
 func parseNames(line string, card *vdir.Card) {
@@ -151,6 +152,8 @@ func parseNames(line string, card *vdir.Card) {
 				card.Org = value
 			case "categories":
 				card.Categories = multiple(value)
+			case "birthday":
+				card.Birthday = value
 			}
 		}
 	}

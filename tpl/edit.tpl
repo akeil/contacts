@@ -11,6 +11,8 @@ Title        : {{ .Title }}
 Role         : {{ .Role }}
 Organization : {{ .Org }}
 
+Birthday     : {{ .Birthday }}
+
 # Mail Adresses ---------------------------------------------------------------
 # Format is     TYPE[, TYPE]: ADDRESS
 # Types are     work, home

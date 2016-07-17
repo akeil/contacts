@@ -22,6 +22,10 @@ Organization : {{ .Org }}
 {{- end }}
 {{- if ( len .Email ) gt 0 }}
 
+{{- if .Birthday }}
+Birthday     : {{ .Birthday }}
+{{- end }}
+
 Mail Adresses:
 {{- range .Email }}
 - [{{ .Type | join }}] {{ .Value }}
